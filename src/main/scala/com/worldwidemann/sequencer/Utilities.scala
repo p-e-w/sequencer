@@ -33,11 +33,12 @@ object Utilities {
   def formatNumber(number: Double) = format.format(number)
 
   // Rewrites number as a fraction of integers to prevent Symja from entering numerical mode
-  def getSymbolicForm(number: Double): String = {
+  def getSymbolicForm(number: Double) = {
     val stringForm = formatNumber(number).split("\\.")
     if (stringForm.size == 1)
-      return "(" + stringForm(0) + ")"
-    "(" + stringForm(0) + stringForm(1) + "/" + math.pow(10, stringForm(1).length).round + ")"
+      "(" + stringForm(0) + ")"
+    else
+      "(" + stringForm(0) + stringForm(1) + "/" + math.pow(10, stringForm(1).length).round + ")"
   }
 
   // Retrieves the index from which on the generic part of the formula applies

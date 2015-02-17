@@ -23,14 +23,14 @@ class Node {
     val copy = new Node
     copy.expression = expression
     copy.expressionIndex = expressionIndex
-    children.foreach(child => {
-      copy.children += child.getCopy
-    })
+    copy.children ++= children.map(_.getCopy)
     copy
   }
 
   // Returns all nodes in the tree
   def getTreeNodes: Seq[Node] = {
+    // More elegant but also slower:
+    //this +: children.map(_.getTreeNodes).flatten
     val treeNodes = new ListBuffer[Node]
     treeNodes += this
     children.foreach(child => {
@@ -40,9 +40,9 @@ class Node {
   }
 
   def evaluate(index: Int, sequence: Seq[Double]): Double =
-    expression.evaluate(children.map(child => child.evaluate(index, sequence)), index, sequence)
+    expression.evaluate(children.map(_.evaluate(index, sequence)), index, sequence)
 
-  override def toString = expression.render(children.map(child => child.toString))
+  override def toString = expression.render(children.map(_.toString))
 
   override def equals(that: Any): Boolean = {
     that match {

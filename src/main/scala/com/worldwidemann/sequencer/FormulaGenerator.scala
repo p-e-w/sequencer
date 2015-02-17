@@ -106,7 +106,7 @@ class FormulaGenerator(configuration: Configuration) {
     for ((tree, i) <- trees.view.zipWithIndex) {
       val nodes = tree.getTreeNodes
       // Set initial expressions
-      nodes.foreach(node => rollNodeExpression(node))
+      nodes.foreach(rollNodeExpression)
 
       var lastRolled = false
       while (!lastRolled) {
