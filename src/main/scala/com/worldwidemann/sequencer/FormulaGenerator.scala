@@ -22,7 +22,7 @@ class FormulaGenerator(configuration: Configuration) {
       Number("3", 3),
       Number("4", 4),
       Number("5", 5),
-      //Number("6", 6),
+      Number("6", 6),
       //Number("7", 7),
       //Number("8", 8),
       //Number("9", 9),

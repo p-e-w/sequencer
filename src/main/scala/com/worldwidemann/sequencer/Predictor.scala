@@ -13,8 +13,8 @@ package com.worldwidemann.sequencer
 import scala.collection.mutable.ListBuffer
 
 object Predictor {
-  def predict(formula: Node, sequence: Seq[Double], elements: Int) = {
-    val sequenceNew = new ListBuffer[Double]
+  def predict(formula: Node, sequence: Seq[String], elements: Int) = {
+    val sequenceNew = new ListBuffer[String]
     sequenceNew ++= sequence
     val startIndex = Utilities.getStartIndex(formula)
 
@@ -22,13 +22,11 @@ object Predictor {
       var formulaNew = formula.toString.replace("(n)", "(" + index + ")")
       // Substitute values of previous elements
       for (offset <- 1 to startIndex - 1)
-        formulaNew = formulaNew.replace("(a" + offset + ")", Utilities.getSymbolicForm(sequenceNew(index - offset - 1)))
-      val result = Utilities.evaluateSymja(formulaNew)
+        formulaNew = formulaNew.replace("(a" + offset + ")", "(" + sequenceNew(index - offset - 1) + ")")
 
-      if (!Utilities.isDouble(result))
-        throw new RuntimeException("Unable to predict sequence for formula " + formulaNew.toString)
-
-      val newElement = result.toDouble
+      val newElement = Simplifier.simplify(formulaNew)
+      if (!Utilities.isNumber(newElement))
+        throw new RuntimeException("Unable to predict sequence for formula '" + formulaNew.toString + "'")
       sequenceNew += newElement
       newElement
     })

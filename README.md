@@ -37,6 +37,17 @@ and provides the continuation
 2137, 76709, 4643751, 5888916569, 21570312343279, ...
 ```
 
+### Symbolic input and output
+
+Sequencer is not limited to processing integers but can identify sequences consisting of arbitrary Symja expressions (provided they can be evaluated numerically). For example, invoking the program with the command line `-u 0 1/2 sqrt(3)/2 1` produces
+
+```
+a(n) = Sin(1/6*Pi*(n-1))   for n >= 1
+Continuation: 1/2*3^(1/2), 1/2, 0, -1/2, (-1/2)*3^(1/2), ...
+```
+
+Note that parentheses in arguments need to be escaped (`\(`) when running a program from a shell like bash.
+
 ## Installation and usage
 
 Sequencer requires [Java](https://www.java.com) to run. Download the latest Sequencer JAR from the [releases page](https://github.com/p-e-w/sequencer/releases) and execute it from a terminal with the numbers to be matched as arguments, i.e.

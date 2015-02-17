@@ -10,8 +10,6 @@
 
 package com.worldwidemann.sequencer
 
-import java.text.DecimalFormat
-
 import org.matheclipse.core.eval.EvalUtilities
 
 object Utilities {
@@ -19,26 +17,14 @@ object Utilities {
 
   def evaluateSymja(expression: String) = evaluator.evaluate(expression).toString
 
-  def isDouble(string: String): Boolean = {
-    try {
-      string.toDouble
-      return true
-    } catch {
-      case e: Exception => return false
-    }
-  }
+  def isNumerical(value: Double) = !value.isNaN && !value.isInfinite
 
-  private val format = new DecimalFormat("#.#")
+  def getNumericalValue(expression: String) = evaluateSymja("(" + expression + ") + 0.0").toDouble
 
-  def formatNumber(number: Double) = format.format(number)
-
-  // Rewrites number as a fraction of integers to prevent Symja from entering numerical mode
-  def getSymbolicForm(number: Double) = {
-    val stringForm = formatNumber(number).split("\\.")
-    if (stringForm.size == 1)
-      "(" + stringForm(0) + ")"
-    else
-      "(" + stringForm(0) + stringForm(1) + "/" + math.pow(10, stringForm(1).length).round + ")"
+  def isNumber(expression: String) = try {
+    isNumerical(getNumericalValue(expression))
+  } catch {
+    case e: Exception => false
   }
 
   // Retrieves the index from which on the generic part of the formula applies

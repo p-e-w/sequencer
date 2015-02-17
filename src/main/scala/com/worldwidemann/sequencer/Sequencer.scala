@@ -16,15 +16,17 @@ case class Configuration(maximumComplexity: Int, maximumIdentifications: Int, pr
                          recurrenceRelations: Boolean, combinatorialFunctions: Boolean, transcendentalFunctions: Boolean,
                          numericalTest: Boolean, printProgress: Boolean)
 
-case class SequenceIdentification(formula: String, continuation: Seq[Double])
+case class SequenceIdentification(formula: String, continuation: Seq[String])
 
 class Sequencer(configuration: Configuration) {
-  def identifySequence(sequence: Seq[Double]): Seq[SequenceIdentification] = {
+  def identifySequence(sequence: Seq[String]): Seq[SequenceIdentification] = {
+    val sequenceNumerical = sequence.map(Utilities.getNumericalValue)
+
     val identifications = new ListBuffer[SequenceIdentification]
 
     for (nodes <- 1 to configuration.maximumComplexity) {
       new FormulaGenerator(configuration).getFormulas(nodes, formula => {
-        if (!configuration.numericalTest || Verifier.testFormula(formula, sequence)) {
+        if (!configuration.numericalTest || Verifier.testFormula(formula, sequenceNumerical)) {
           // Sequence matched numerically (or test skipped) => verify symbolically
           if (Verifier.verifyFormula(formula, sequence)) {
             try {
@@ -54,12 +56,12 @@ class Sequencer(configuration: Configuration) {
 
   // Returns the full descriptive string form of the formula,
   // including seed values for recurrence relations
-  private def getFullFormula(formula: Node, sequence: Seq[Double]) = {
+  private def getFullFormula(formula: Node, sequence: Seq[String]) = {
     val builder = new StringBuilder
     var generalTerm = formula.toString
     val startIndex = Utilities.getStartIndex(formula)
     for (index <- 1 to startIndex - 1) {
-      builder.append("a(").append(index).append(") = ").append(Utilities.formatNumber(sequence(index - 1))).append("\n")
+      builder.append("a(").append(index).append(") = ").append(Simplifier.simplify(sequence(index - 1))).append("\n")
       generalTerm = generalTerm.replace("(a" + index + ")", "(a((n)-" + index + "))")
     }
     builder.append("a(n) = ").append(Simplifier.simplify(generalTerm)).append("   for n >= ").append(startIndex).toString

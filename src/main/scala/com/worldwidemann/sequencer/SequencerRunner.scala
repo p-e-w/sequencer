@@ -19,7 +19,7 @@ import scopt.OptionParser
 
 object SequencerRunner {
   def main(args: Array[String]): Unit = {
-    println("Sequencer 1.0.0 (https://github.com/p-e-w/sequencer)\n")
+    println("Sequencer 1.1.0 (https://github.com/p-e-w/sequencer)\n")
 
     // Suppress annoying Symja console output (idea from http://stackoverflow.com/a/8363580).
     // This is a very brittle solution. In particular, if we do not use the Console stream
@@ -28,7 +28,7 @@ object SequencerRunner {
       override def write(b: Int) = {}
     }))
 
-    val sequence = new ListBuffer[Double]
+    val sequence = new ListBuffer[String]
 
     val parser = new OptionParser[Configuration]("Sequencer") {
       opt[Int]('d', "depth") action { (x, c) =>
@@ -52,22 +52,24 @@ object SequencerRunner {
       opt[Unit]('s', "symbolic") action { (x, c) =>
         c.copy(numericalTest = false)
       } text ("skip numerical test (symbolic verification only; slows down search)")
-      arg[Double]("a_1, a_2, ...") unbounded () action { (x, c) =>
+      arg[String]("a_1, a_2, ...") unbounded () action { (x, c) =>
         sequence += x
         c.copy()
-      } text ("list of numbers to search for")
+      } validate { x =>
+        if (Utilities.isNumber(x)) success else failure("'" + x + "' can not be evaluated numerically")
+      } text ("list of numbers to search for (symbolic expressions allowed)")
     }
 
     parser.parse(args, Configuration(6, 5, 5, true, true, true, true, true)) match {
       case Some(configuration) => {
-        println("Searching for formulas for sequence (a(n)) = " + sequence.map(Utilities.formatNumber).mkString(", ") + ", ...")
+        println("Searching for formulas for sequence (a(n)) = " + sequence.mkString(", ") + ", ...")
 
         val time = System.currentTimeMillis
 
         val identifications = new Sequencer(configuration).identifySequence(sequence)
         identifications.foreach(identification => {
           println("\n" + identification.formula)
-          println("Continuation: " + identification.continuation.map(Utilities.formatNumber).mkString(", ") + ", ...")
+          println("Continuation: " + identification.continuation.mkString(", ") + ", ...")
         })
 
         if (identifications.isEmpty)
