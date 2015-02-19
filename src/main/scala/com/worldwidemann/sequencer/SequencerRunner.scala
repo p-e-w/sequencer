@@ -52,6 +52,9 @@ object SequencerRunner {
       opt[Unit]('s', "symbolic") action { (x, c) =>
         c.copy(numericalTest = false)
       } text ("skip numerical test (symbolic verification only; slows down search)")
+      opt[Unit]('l', "latex") action { (x, c) =>
+        c.copy(outputLaTeX = true)
+      } text ("output LaTeX instead of plain text")
       arg[String]("a_1, a_2, ...") unbounded () action { (x, c) =>
         sequence += x
         c.copy()
@@ -60,16 +63,23 @@ object SequencerRunner {
       } text ("list of numbers to search for (symbolic expressions allowed)")
     }
 
-    parser.parse(args, Configuration(6, 5, 5, true, true, true, true, true)) match {
+    parser.parse(args, Configuration(6, 5, 5, true, true, true, true, true, false)) match {
       case Some(configuration) => {
-        println("Searching for formulas for sequence (a(n)) = " + sequence.mkString(", ") + ", ...")
+        println("Searching for formulas for sequence " +
+          (if (configuration.outputLaTeX)
+            "$(a_n)_{n\\geq 1} = " + sequence.map(Utilities.getLaTeX).mkString(", ") + ", \\dots$"
+          else
+            "(a(n)) = " + sequence.mkString(", ") + ", ..."))
 
         val time = System.currentTimeMillis
 
         val identifications = new Sequencer(configuration).identifySequence(sequence)
         identifications.foreach(identification => {
-          println("\n" + identification.formula)
-          println("Continuation: " + identification.continuation.mkString(", ") + ", ...")
+          println("\n" + (if (configuration.outputLaTeX) "$$" else "") + identification.formula +
+            (if (configuration.outputLaTeX) "$$" else ""))
+          println("Continuation: " + (if (configuration.outputLaTeX) "$" else "") +
+            identification.continuation.mkString(", ") +
+            (if (configuration.outputLaTeX) ", \\dots$" else ", ..."))
         })
 
         if (identifications.isEmpty)

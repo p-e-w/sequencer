@@ -14,13 +14,14 @@ import scala.collection.mutable.ListBuffer
 
 case class Configuration(maximumComplexity: Int, maximumIdentifications: Int, predictionLength: Int,
                          recurrenceRelations: Boolean, combinatorialFunctions: Boolean, transcendentalFunctions: Boolean,
-                         numericalTest: Boolean, printProgress: Boolean)
+                         numericalTest: Boolean, printProgress: Boolean, outputLaTeX: Boolean)
 
 case class SequenceIdentification(formula: String, continuation: Seq[String])
 
 class Sequencer(configuration: Configuration) {
   def identifySequence(sequence: Seq[String]): Seq[SequenceIdentification] = {
-    val sequenceNumerical = sequence.map(Utilities.getNumericalValue)
+    val sequenceSimplified = sequence.map(Simplifier.simplify)
+    val sequenceNumerical = sequenceSimplified.map(Utilities.getNumericalValue)
 
     val identifications = new ListBuffer[SequenceIdentification]
 
@@ -28,10 +29,10 @@ class Sequencer(configuration: Configuration) {
       new FormulaGenerator(configuration).getFormulas(nodes, formula => {
         if (!configuration.numericalTest || Verifier.testFormula(formula, sequenceNumerical)) {
           // Sequence matched numerically (or test skipped) => verify symbolically
-          if (Verifier.verifyFormula(formula, sequence)) {
+          if (Verifier.verifyFormula(formula, sequenceSimplified)) {
             try {
-              identifications += SequenceIdentification(getFullFormula(formula, sequence),
-                Predictor.predict(formula, sequence, configuration.predictionLength))
+              identifications += SequenceIdentification(getFullFormula(formula, sequenceSimplified),
+                Predictor.predict(formula, sequenceSimplified, configuration.predictionLength))
               if (configuration.maximumIdentifications > 0 && identifications.distinct.size >= configuration.maximumIdentifications)
                 return identifications.distinct.sortBy(_.formula.length)
             } catch {
@@ -58,12 +59,44 @@ class Sequencer(configuration: Configuration) {
   // including seed values for recurrence relations
   private def getFullFormula(formula: Node, sequence: Seq[String]) = {
     val builder = new StringBuilder
-    var generalTerm = formula.toString
+
+    var generalPart = Simplifier.simplify(formula.toString)
+    if (configuration.outputLaTeX) {
+      builder.append("\\begin{align}\n")
+      generalPart = Utilities.getLaTeX(generalPart)
+    }
+
     val startIndex = Utilities.getStartIndex(formula)
     for (index <- 1 to startIndex - 1) {
-      builder.append("a(").append(index).append(") = ").append(Simplifier.simplify(sequence(index - 1))).append("\n")
-      generalTerm = generalTerm.replace("(a" + index + ")", "(a((n)-" + index + "))")
+      if (configuration.outputLaTeX) {
+        builder.append("a_").append(index).append(" &= ").append(Utilities.getLaTeX(sequence(index - 1))).append(" \\\\")
+        // Note that we can not rely on "a1" etc. being surrounded by brackets anymore
+        // as the formula has already been simplified
+        generalPart = generalPart.replace("a" + index, "a_{n-" + index + "}")
+      } else {
+        builder.append("a(").append(index).append(") = ").append(sequence(index - 1))
+        generalPart = generalPart.replace("a" + index, "a(n-" + index + ")")
+      }
+      builder.append("\n")
     }
-    builder.append("a(n) = ").append(Simplifier.simplify(generalTerm)).append("   for n >= ").append(startIndex).toString
+
+    if (configuration.outputLaTeX)
+      builder.append("a_n &= ")
+    else
+      builder.append("a(n) = ")
+    builder.append(generalPart)
+
+    if (startIndex > 1) {
+      if (configuration.outputLaTeX) {
+        builder.append("\\quad \\text{for } n\\geq ").append(startIndex)
+      } else {
+        builder.append("   for n >= ").append(startIndex)
+      }
+    }
+
+    if (configuration.outputLaTeX)
+      builder.append("\n\\end{align}")
+
+    builder.toString
   }
 }

@@ -9,7 +9,7 @@ Sequencer identifies number sequences. That is, given a list of numbers like
 it finds a formula that generates them, in this case
 
 ```
-a(n) = 2^(n-1)   for n >= 1
+a(n) = 2^(n-1)
 ```
 
 Sequencer employs neither a library of sequences nor a limited set of algorithms to find a closed form. Instead, it generates **all** formulas up to a certain size and then checks them against the provided numbers.
@@ -42,7 +42,7 @@ and provides the continuation
 Sequencer is not limited to processing integers but can identify sequences consisting of arbitrary Symja expressions (provided they can be evaluated numerically). For example, invoking the program with the command line `-u 0 1/2 sqrt(3)/2 1` produces
 
 ```
-a(n) = Sin(1/6*Pi*(n-1))   for n >= 1
+a(n) = Sin(1/6*Pi*(n-1))
 Continuation: 1/2*3^(1/2), 1/2, 0, -1/2, (-1/2)*3^(1/2), ...
 ```
 

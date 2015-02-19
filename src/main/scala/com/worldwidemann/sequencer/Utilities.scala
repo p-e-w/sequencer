@@ -10,7 +10,11 @@
 
 package com.worldwidemann.sequencer
 
+import java.io.StringWriter
+
+import org.matheclipse.core.eval.EvalEngine
 import org.matheclipse.core.eval.EvalUtilities
+import org.matheclipse.core.eval.TeXUtilities
 
 object Utilities {
   private val evaluator = new EvalUtilities(false, true)
@@ -27,7 +31,15 @@ object Utilities {
     case e: Exception => false
   }
 
-  // Retrieves the index from which on the generic part of the formula applies
+  private val texUtilities = new TeXUtilities(new EvalEngine(true), true)
+
+  def getLaTeX(expression: String) = {
+    val writer = new StringWriter
+    texUtilities.toTeX(expression, writer)
+    writer.toString
+  }
+
+  // Retrieves the index from which on the general part of the formula applies
   // (1 for non-recurrence formulas)
   def getStartIndex(formula: Node) = {
     val offsets = formula.getTreeNodes
