@@ -27,19 +27,23 @@ class Sequencer(configuration: Configuration) {
 
     for (nodes <- 1 to configuration.maximumComplexity) {
       new FormulaGenerator(configuration).getFormulas(nodes, formula => {
-        if (!configuration.numericalTest || Verifier.testFormula(formula, sequenceNumerical)) {
-          // Sequence matched numerically (or test skipped) => verify symbolically
-          if (Verifier.verifyFormula(formula, sequenceSimplified)) {
-            try {
-              identifications += SequenceIdentification(getFullFormula(formula, sequenceSimplified),
-                Predictor.predict(formula, sequenceSimplified, configuration.predictionLength))
-              if (configuration.maximumIdentifications > 0 && identifications.distinct.size >= configuration.maximumIdentifications)
-                return identifications.distinct.sortBy(_.formula.length)
-            } catch {
-              // Occasionally, simplification or prediction throw an exception although
-              // symbolic verification did not. This indicates a bug in Symja
-              // and is simply ignored
-              case e: Exception => {}
+        // Consider recurrence relations only if they predict at least one element
+        // of the sequence without referencing a seed value
+        if (sequence.size > 2 * (Utilities.getStartIndex(formula) - 1)) {
+          if (!configuration.numericalTest || Verifier.testFormula(formula, sequenceNumerical)) {
+            // Sequence matched numerically (or test skipped) => verify symbolically
+            if (Verifier.verifyFormula(formula, sequenceSimplified)) {
+              try {
+                identifications += SequenceIdentification(getFullFormula(formula, sequenceSimplified),
+                  Predictor.predict(formula, sequenceSimplified, configuration.predictionLength))
+                if (configuration.maximumIdentifications > 0 && identifications.distinct.size >= configuration.maximumIdentifications)
+                  return identifications.distinct.sortBy(_.formula.length)
+              } catch {
+                // Occasionally, simplification or prediction throw an exception although
+                // symbolic verification did not. This indicates a bug in Symja
+                // and is simply ignored
+                case e: Exception => {}
+              }
             }
           }
         }
