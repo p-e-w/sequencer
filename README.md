@@ -39,7 +39,7 @@ and provides the continuation
 
 ### Symbolic input and output
 
-Sequencer is not limited to processing integers but can identify sequences consisting of arbitrary Symja expressions (provided they can be evaluated numerically). For example, invoking the program with the command line `-u 0 1/2 sqrt(3)/2 1` produces
+Sequencer is not limited to processing integers but can identify sequences consisting of arbitrary Symja expressions (provided they can be evaluated numerically). For example, invoking the program with the arguments `0 1/2 sqrt(3)/2 1` produces
 
 ```
 a(n) = Sin(1/6*Pi*(n-1))
@@ -50,13 +50,47 @@ Note that parentheses in arguments need to be escaped (`\(`) when running a prog
 
 ## Installation and usage
 
-Sequencer requires [Java](https://www.java.com) to run. Download the latest Sequencer JAR from the [releases page](https://github.com/p-e-w/sequencer/releases) and execute it from a terminal with the numbers to be matched as arguments, i.e.
+Sequencer requires [Java](https://www.java.com) to run. Download the latest standalone Sequencer JAR (`sequencer.jar`) from the [releases page](https://github.com/p-e-w/sequencer/releases) and execute it from a terminal with the numbers to be matched as arguments, i.e.
 
 ```
 java -jar sequencer.jar 1 2 3 4 5
 ```
 
 Running the program without arguments displays a help text explaining the various command line parameters that can be used to fine-tune how searches are performed.
+
+## API
+
+Sequencer can also be used as a library, for which precompiled JARs (`sequencer-library-X.X.X.jar`) are available on the [releases page](https://github.com/p-e-w/sequencer/releases).
+
+The class `Sequencer` provides the method
+
+```scala
+def identifySequence(sequence: Seq[String]): Seq[SequenceIdentification]
+```
+
+that returns objects of type
+
+```scala
+case class SequenceIdentification(formula: String, continuation: Seq[String])
+```
+
+When instantiating, the class must be passed a `Configuration` object
+
+```scala
+case class Configuration(
+	maximumComplexity: Int,
+	maximumIdentifications: Int,
+	predictionLength: Int,
+	recurrenceRelations: Boolean,
+	combinatorialFunctions: Boolean,
+	transcendentalFunctions: Boolean,
+	numericalTest: Boolean,
+	printProgress: Boolean,
+	outputLaTeX: Boolean
+)
+```
+
+that controls the behavior of `identifySequence`. For more details, see the source code.
 
 ## Development
 
@@ -68,13 +102,19 @@ cd sequencer
 sbt run
 ```
 
-The release JAR can then be created using
+The standalone JAR can be created using
 
 ```
 sbt assembly
 ```
 
-and will be located at `target/scala-X.XX/sequencer.jar`.
+The library JAR can be created using
+
+```
+sbt package
+```
+
+All generated JARs will be written to `target/scala-X.XX/`.
 
 To develop Sequencer using a Scala IDE, have sbt generate project files with a plugin like [sbteclipse](https://github.com/typesafehub/sbteclipse) or [sbt-idea](https://github.com/mpeltonen/sbt-idea).
 
