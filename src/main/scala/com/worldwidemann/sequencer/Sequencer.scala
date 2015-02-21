@@ -34,8 +34,9 @@ class Sequencer(configuration: Configuration) {
             // Sequence matched numerically (or test skipped) => verify symbolically
             if (Verifier.verifyFormula(formula, sequenceSimplified)) {
               try {
-                identifications += SequenceIdentification(getFullFormula(formula, sequenceSimplified),
-                  Predictor.predict(formula, sequenceSimplified, configuration.predictionLength))
+                val continuation = Predictor.predict(formula, sequenceSimplified, configuration.predictionLength)
+                  .map(element => if (configuration.outputLaTeX) Utilities.getLaTeX(element) else element)
+                identifications += SequenceIdentification(getFullFormula(formula, sequenceSimplified), continuation)
                 if (configuration.maximumIdentifications > 0 && identifications.distinct.size >= configuration.maximumIdentifications)
                   return identifications.distinct.sortBy(_.formula.length)
               } catch {

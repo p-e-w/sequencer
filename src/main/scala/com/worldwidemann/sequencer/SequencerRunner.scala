@@ -19,7 +19,7 @@ import scopt.OptionParser
 
 object SequencerRunner {
   def main(args: Array[String]): Unit = {
-    println("Sequencer 1.2.0 (https://github.com/p-e-w/sequencer)\n")
+    println("Sequencer 1.2.1 (https://github.com/p-e-w/sequencer)\n")
 
     // Suppress annoying Symja console output (idea from http://stackoverflow.com/a/8363580).
     // This is a very brittle solution. In particular, if we do not use the Console stream
@@ -67,9 +67,9 @@ object SequencerRunner {
       case Some(configuration) => {
         println("Searching for formulas for sequence " +
           (if (configuration.outputLaTeX)
-            "$(a_n)_{n\\geq 1} = " + sequence.map(Utilities.getLaTeX).mkString(", ") + ", \\dots$"
+            "$(a_n)_{n\\geq 1} = " + Utilities.formatSequence(sequence.map(Utilities.getLaTeX), true) + "$"
           else
-            "(a(n)) = " + sequence.mkString(", ") + ", ..."))
+            "(a(n)) = " + Utilities.formatSequence(sequence, false)))
 
         val time = System.currentTimeMillis
 
@@ -78,8 +78,8 @@ object SequencerRunner {
           println("\n" + (if (configuration.outputLaTeX) "$$" else "") + identification.formula +
             (if (configuration.outputLaTeX) "$$" else ""))
           println("Continuation: " + (if (configuration.outputLaTeX) "$" else "") +
-            identification.continuation.mkString(", ") +
-            (if (configuration.outputLaTeX) ", \\dots$" else ", ..."))
+            Utilities.formatSequence(identification.continuation, configuration.outputLaTeX) +
+            (if (configuration.outputLaTeX) "$" else ""))
         })
 
         if (identifications.isEmpty)

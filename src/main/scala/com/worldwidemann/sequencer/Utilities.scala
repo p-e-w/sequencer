@@ -39,6 +39,13 @@ object Utilities {
     writer.toString
   }
 
+  def formatSequence(sequence: Seq[String], latex: Boolean) = {
+    if (latex)
+      (sequence :+ "\\ldots").mkString(",\\; ")
+    else
+      (sequence :+ "...").mkString(", ")
+  }
+
   // Retrieves the index from which on the general part of the formula applies
   // (1 for non-recurrence formulas)
   def getStartIndex(formula: Node) = {
