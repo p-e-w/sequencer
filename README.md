@@ -84,6 +84,7 @@ case class Configuration(
 	recurrenceRelations: Boolean,
 	combinatorialFunctions: Boolean,
 	transcendentalFunctions: Boolean,
+	parallelSearch: Boolean,
 	numericalTest: Boolean,
 	printProgress: Boolean,
 	outputLaTeX: Boolean

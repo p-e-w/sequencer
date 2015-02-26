@@ -90,6 +90,9 @@ class FormulaGenerator(configuration: Configuration) {
         }))
       else List()))
 
+  // Ensures that TreeGenerator builds all trees required to accommodate the expressions above
+  def getMaxChildren = expressions.size - 1
+
   private def rollNodeExpression(node: Node) = {
     val allowedExpressions = expressions(node.children.size)
     node.expressionIndex = if (node.expressionIndex + 1 >= allowedExpressions.size) 0 else node.expressionIndex + 1
@@ -98,33 +101,28 @@ class FormulaGenerator(configuration: Configuration) {
     node.expressionIndex == 0
   }
 
+  // Generates all formulas based on the specified expression tree skeleton.
   // The callback pattern is much more efficient than returning a collection
   // because the number of formulas grows extremely fast with the number of nodes
-  def getFormulas(nodes: Int, formulaCallback: Node => Unit, progressCallback: Double => Unit) = {
-    val trees = new TreeGenerator(expressions.size - 1).getTrees(nodes)
+  def getFormulas(tree: Node, formulaCallback: Node => Unit) {
+    val nodes = tree.getTreeNodes
+    // Set initial expressions
+    nodes.foreach(rollNodeExpression)
 
-    for ((tree, i) <- trees.view.zipWithIndex) {
-      val nodes = tree.getTreeNodes
-      // Set initial expressions
-      nodes.foreach(rollNodeExpression)
+    var lastRolled = false
+    while (!lastRolled) {
+      // Pass the formula in its current form.
+      // The object is mutable, so any processing has to happen in the callback
+      formulaCallback(tree)
 
-      var lastRolled = false
-      while (!lastRolled) {
-        // Pass the formula in its current form.
-        // The object is mutable, so any processing has to happen in the callback
-        formulaCallback(tree)
-
-        var j = 0
-        var rolled = true
-        while (j < nodes.size && rolled) {
-          rolled = rollNodeExpression(nodes(j))
-          j += 1
-          if (j == nodes.size && rolled)
-            lastRolled = true
-        }
+      var i = 0
+      var rolled = true
+      while (i < nodes.size && rolled) {
+        rolled = rollNodeExpression(nodes(i))
+        i += 1
+        if (i == nodes.size && rolled)
+          lastRolled = true
       }
-
-      progressCallback((i + 1).toDouble / trees.size)
     }
   }
 }

@@ -10,54 +10,95 @@
 
 package com.worldwidemann.sequencer
 
-import scala.collection.mutable.ListBuffer
+import java.util.concurrent.atomic.AtomicInteger
+import scala.collection.mutable.SynchronizedQueue
+import scala.collection.generic.Growable
 
 case class Configuration(maximumComplexity: Int, maximumIdentifications: Int, predictionLength: Int,
                          recurrenceRelations: Boolean, combinatorialFunctions: Boolean, transcendentalFunctions: Boolean,
-                         numericalTest: Boolean, printProgress: Boolean, outputLaTeX: Boolean)
+                         parallelSearch: Boolean, numericalTest: Boolean, printProgress: Boolean, outputLaTeX: Boolean)
 
 case class SequenceIdentification(formula: String, continuation: Seq[String])
 
 class Sequencer(configuration: Configuration) {
+  // Note that neither of the two classes keeps a state,
+  // so sharing these objects is thread safe
+  private val formulaGenerator = new FormulaGenerator(configuration)
+  private val treeGenerator = new TreeGenerator(formulaGenerator.getMaxChildren)
+
   def identifySequence(sequence: Seq[String]): Seq[SequenceIdentification] = {
     val sequenceSimplified = sequence.map(Simplifier.simplify)
     val sequenceNumerical = sequenceSimplified.map(Utilities.getNumericalValue)
 
-    val identifications = new ListBuffer[SequenceIdentification]
+    val identifications = new SynchronizedQueue[SequenceIdentification]
 
     for (nodes <- 1 to configuration.maximumComplexity) {
-      new FormulaGenerator(configuration).getFormulas(nodes, formula => {
-        // Consider recurrence relations only if they predict at least one element
-        // of the sequence without referencing a seed value
-        if (sequence.size > 2 * (Utilities.getStartIndex(formula) - 1)) {
-          if (!configuration.numericalTest || Verifier.testFormula(formula, sequenceNumerical)) {
-            // Sequence matched numerically (or test skipped) => verify symbolically
-            if (Verifier.verifyFormula(formula, sequenceSimplified)) {
-              try {
-                val continuation = Predictor.predict(formula, sequenceSimplified, configuration.predictionLength)
-                  .map(element => if (configuration.outputLaTeX) Utilities.getLaTeX(element) else element)
-                identifications += SequenceIdentification(getFullFormula(formula, sequenceSimplified), continuation)
-                if (configuration.maximumIdentifications > 0 && identifications.distinct.size >= configuration.maximumIdentifications)
-                  return identifications.distinct.sortBy(_.formula.length)
-              } catch {
-                // Occasionally, simplification or prediction throw an exception although
-                // symbolic verification did not. This indicates a bug in Symja
-                // and is simply ignored
-                case e: Exception => {}
-              }
-            }
-          }
-        }
-      }, progress => {
-        if (configuration.printProgress)
-          print("\rTrying formulas with complexity " + nodes + "... " + "%3d".format((progress * 100).round) + " %")
+      val trees = treeGenerator.getTrees(nodes)
+      val progress = new AtomicInteger(0)
+
+      // TreeGenerator generates tree objects that are completely independent of each other,
+      // so searching for formulas based on them can be parallelized
+      (if (configuration.parallelSearch) trees.par else trees).foreach(tree => {
+        identifySequenceTask(tree, sequenceSimplified, sequenceNumerical, identifications)
+
+        if (configuration.printProgress && !maximumReached(identifications))
+          // TODO: Concurrency issues with interleaving print statements?
+          print("\rTrying formulas with complexity " + nodes + "... " +
+            "%3d".format(((progress.incrementAndGet.toDouble / trees.size) * 100).round) + " %")
       })
+
+      if (maximumReached(identifications))
+        return processIdentifications(identifications)
 
       if (configuration.printProgress)
         println
     }
 
-    identifications.distinct.sortBy(_.formula.length)
+    processIdentifications(identifications)
+  }
+
+  // Parallel execution unit.
+  // Finds formulas generating the sequence based on the specified expression tree skeleton
+  private def identifySequenceTask(tree: Node, sequence: Seq[String], sequenceNumerical: Seq[Double],
+                                   identifications: Seq[SequenceIdentification] with Growable[SequenceIdentification]) {
+    formulaGenerator.getFormulas(tree, formula => {
+      // Consider recurrence relations only if they predict at least one element
+      // of the sequence without referencing a seed value
+      if (sequence.size > 2 * (Utilities.getStartIndex(formula) - 1)) {
+        if (!configuration.numericalTest || Verifier.testFormula(formula, sequenceNumerical)) {
+          // Sequence matched numerically (or test skipped) => verify symbolically
+          if (Verifier.verifyFormula(formula, sequence)) {
+            try {
+              val continuation = Predictor.predict(formula, sequence, configuration.predictionLength)
+                .map(element => if (configuration.outputLaTeX) Utilities.getLaTeX(element) else element)
+              identifications += SequenceIdentification(getFullFormula(formula, sequence), continuation)
+            } catch {
+              // Occasionally, simplification or prediction throw an exception although
+              // symbolic verification did not. This indicates a bug in Symja
+              // and is simply ignored
+              case e: Exception => {}
+            }
+          }
+        }
+      }
+
+      if (maximumReached(identifications))
+        return
+    })
+  }
+
+  private def maximumReached(identifications: Seq[SequenceIdentification]) =
+    configuration.maximumIdentifications > 0 && identifications.distinct.size >= configuration.maximumIdentifications
+
+  private def processIdentifications(identifications: Seq[SequenceIdentification]) = {
+    // Sort alphabetically before sorting by length to get deterministic ordering independent of search order
+    val sortedIdentifications = identifications.distinct.sortBy(_.formula).sortBy(_.formula.length)
+    if (configuration.maximumIdentifications > 0)
+      // Necessary because the tasks might find additional formulas
+      // before they determine that the maximum has been reached and return
+      sortedIdentifications.take(configuration.maximumIdentifications)
+    else
+      sortedIdentifications
   }
 
   // Returns the full descriptive string form of the formula,

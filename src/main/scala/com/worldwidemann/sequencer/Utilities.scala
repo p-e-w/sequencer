@@ -17,9 +17,8 @@ import org.matheclipse.core.eval.EvalUtilities
 import org.matheclipse.core.eval.TeXUtilities
 
 object Utilities {
-  private val evaluator = new EvalUtilities(false, true)
-
-  def evaluateSymja(expression: String) = evaluator.evaluate(expression).toString
+  // Symja isn't thread safe, so the EvalUtilities object can not be shared between calls
+  def evaluateSymja(expression: String) = new EvalUtilities(false, true).evaluate(expression).toString
 
   def isNumerical(value: Double) = !value.isNaN && !value.isInfinite
 
@@ -31,11 +30,9 @@ object Utilities {
     case e: Exception => false
   }
 
-  private val texUtilities = new TeXUtilities(new EvalEngine(true), true)
-
   def getLaTeX(expression: String) = {
     val writer = new StringWriter
-    texUtilities.toTeX(expression, writer)
+    new TeXUtilities(new EvalEngine(true), true).toTeX(expression, writer)
     writer.toString
   }
 

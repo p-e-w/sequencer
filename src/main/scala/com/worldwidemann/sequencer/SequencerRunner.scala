@@ -18,8 +18,8 @@ import scala.collection.mutable.ListBuffer
 import scopt.OptionParser
 
 object SequencerRunner {
-  def main(args: Array[String]): Unit = {
-    println("Sequencer 1.2.1 (https://github.com/p-e-w/sequencer)\n")
+  def main(args: Array[String]) {
+    println("Sequencer 1.3.0 (https://github.com/p-e-w/sequencer)\n")
 
     // Suppress annoying Symja console output (idea from http://stackoverflow.com/a/8363580).
     // This is a very brittle solution. In particular, if we do not use the Console stream
@@ -36,7 +36,10 @@ object SequencerRunner {
       } text ("search depth (maximum number of nodes in expression tree) [default: 6]")
       opt[Int]('r', "results") action { (x, c) =>
         c.copy(maximumIdentifications = x)
-      } text ("maximum number of formulas to return, 0 for unbounded [default: 5]")
+      } text ("maximum number of formulas to return, 0 for unlimited [default: 5]. " +
+        "Note that for parallel searches, the order in which formulas are found is not deterministic " +
+        "so limiting the number of search results can lead to unreproducible searches " +
+        "unless the --sequential option is also used.")
       opt[Int]('p', "predict") action { (x, c) =>
         c.copy(predictionLength = x)
       } text ("number of elements to predict in sequence continuation [default: 5]")
@@ -49,6 +52,9 @@ object SequencerRunner {
       opt[Unit]('t', "no-transcendentals") action { (x, c) =>
         c.copy(transcendentalFunctions = false)
       } text ("do not search for transcendental functions (speeds up search)")
+      opt[Unit]('q', "sequential") action { (x, c) =>
+        c.copy(parallelSearch = false)
+      } text ("disable search parallelization (single-threaded search)")
       opt[Unit]('s', "symbolic") action { (x, c) =>
         c.copy(numericalTest = false)
       } text ("skip numerical test (symbolic verification only; slows down search)")
@@ -63,7 +69,7 @@ object SequencerRunner {
       } text ("list of numbers to search for (symbolic expressions allowed)")
     }
 
-    parser.parse(args, Configuration(6, 5, 5, true, true, true, true, true, false)) match {
+    parser.parse(args, Configuration(6, 5, 5, true, true, true, true, true, true, false)) match {
       case Some(configuration) => {
         println("Searching for formulas for sequence " +
           (if (configuration.outputLaTeX)
