@@ -24,9 +24,11 @@ object SequencerRunner {
     // Suppress annoying Symja console output (idea from http://stackoverflow.com/a/8363580).
     // This is a very brittle solution. In particular, if we do not use the Console stream
     // at least once before redirecting System.out, println calls will be swallowed too
-    System.setOut(new PrintStream(new OutputStream {
+    val dummyStream = new PrintStream(new OutputStream {
       override def write(b: Int) = {}
-    }))
+    })
+    System.setOut(dummyStream)
+    System.setErr(dummyStream)
 
     val sequence = new ListBuffer[String]
 
