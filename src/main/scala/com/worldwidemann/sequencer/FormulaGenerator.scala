@@ -60,7 +60,7 @@ class FormulaGenerator(configuration: Configuration) {
         UnaryPrefixOperator("Factorial", x => {
           if (x.isWhole && 0 <= x && x <= 10)
             CombinatoricsUtils.factorialDouble(x.toInt)
-          else throw new IllegalArgumentException("Argument " + x + " is invalid for the Factorial function")
+          else Double.NaN
         }))
       else List()) ++
       (if (configuration.transcendentalFunctions) List(
@@ -86,7 +86,7 @@ class FormulaGenerator(configuration: Configuration) {
         BinaryPrefixOperator("Binomial", (x, y) => {
           if (x.isWhole && 0 <= x && x <= 10 && y.isWhole && 0 <= y && y <= x)
             CombinatoricsUtils.binomialCoefficientDouble(x.toInt, y.toInt)
-          else throw new IllegalArgumentException("Arguments " + x + ", " + y + " are invalid for the Binomial function")
+          else Double.NaN
         }))
       else List()))
 

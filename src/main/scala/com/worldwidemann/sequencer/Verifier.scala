@@ -17,7 +17,8 @@ object Verifier {
   def testFormula(formula: Node, startIndex: Int, sequence: Seq[Double]): Boolean = {
     for (index <- startIndex to sequence.size) {
       try {
-        if (math.abs(formula.evaluate(index, sequence) - sequence(index - 1)) > testThreshold)
+        val value = formula.evaluate(index, sequence)
+        if (!Utilities.isNumerical(value) || math.abs(value - sequence(index - 1)) > testThreshold)
           return false
       } catch {
         // Arithmetic exceptions etc. indicate that the formula is invalid

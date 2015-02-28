@@ -39,12 +39,8 @@ class Node {
     treeNodes
   }
 
-  def evaluate(index: Int, sequence: Seq[Double]): Double = {
-    val value = expression.evaluate(children.map(_.evaluate(index, sequence)), index, sequence)
-    if (!Utilities.isNumerical(value))
-      throw new RuntimeException("Unable to evaluate expression")
-    value
-  }
+  def evaluate(index: Int, sequence: Seq[Double]): Double =
+    expression.evaluate(children.map(_.evaluate(index, sequence)), index, sequence)
 
   override def toString = expression.render(children.map(_.toString))
 

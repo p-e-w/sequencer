@@ -31,7 +31,7 @@ case class PreviousElement(offset: Int) extends Expression {
   def evaluate(arguments: Seq[Double], index: Int, sequence: Seq[Double]) =
     if (index > offset)
       sequence(index - offset - 1)
-    else throw new IllegalArgumentException("Reference to nonexisting element")
+    else Double.NaN
   def render(arguments: Seq[String]) = "(a" + offset + ")"
   override def getStartIndex = offset + 1
 }
