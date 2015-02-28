@@ -13,6 +13,8 @@ package com.worldwidemann.sequencer
 trait Expression {
   def evaluate(arguments: Seq[Double], index: Int, sequence: Seq[Double]): Double
   def render(arguments: Seq[String]): String
+  // Returns the index from which on the general part of the formula applies
+  def getStartIndex = 1
 }
 
 case object EmptyExpression extends Expression {
@@ -31,6 +33,7 @@ case class PreviousElement(offset: Int) extends Expression {
       sequence(index - offset - 1)
     else throw new IllegalArgumentException("Reference to nonexisting element")
   def render(arguments: Seq[String]) = "(a" + offset + ")"
+  override def getStartIndex = offset + 1
 }
 
 case class Number(symbol: String, value: Double) extends Expression {

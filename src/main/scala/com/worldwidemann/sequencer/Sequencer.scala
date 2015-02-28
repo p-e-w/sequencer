@@ -61,17 +61,17 @@ class Sequencer(configuration: Configuration) {
   // Finds formulas generating the sequence based on the specified expression tree skeleton
   private def identifySequenceTask(tree: Node, sequence: Seq[String], sequenceNumerical: Seq[Double],
                                    identifications: Seq[SequenceIdentification] with Growable[SequenceIdentification]) {
-    formulaGenerator.getFormulas(tree, formula => {
+    formulaGenerator.getFormulas(tree, (formula, startIndex) => {
       // Consider recurrence relations only if they predict at least one element
       // of the sequence without referencing a seed value
-      if (sequence.size > 2 * (Utilities.getStartIndex(formula) - 1)) {
-        if (!configuration.numericalTest || Verifier.testFormula(formula, sequenceNumerical)) {
+      if (sequence.size > 2 * (startIndex - 1)) {
+        if (!configuration.numericalTest || Verifier.testFormula(formula, startIndex, sequenceNumerical)) {
           // Sequence matched numerically (or test skipped) => verify symbolically
-          if (Verifier.verifyFormula(formula, sequence)) {
+          if (Verifier.verifyFormula(formula, startIndex, sequence)) {
             try {
-              val continuation = Predictor.predict(formula, sequence, configuration.predictionLength)
+              val continuation = Predictor.predict(formula, startIndex, sequence, configuration.predictionLength)
                 .map(element => if (configuration.outputLaTeX) Utilities.getLaTeX(element) else element)
-              identifications += SequenceIdentification(getFullFormula(formula, sequence), continuation)
+              identifications += SequenceIdentification(getFullFormula(formula, startIndex, sequence), continuation)
             } catch {
               // Occasionally, simplification or prediction throw an exception although
               // symbolic verification did not. This indicates a bug in Symja
@@ -88,7 +88,9 @@ class Sequencer(configuration: Configuration) {
   }
 
   private def maximumReached(identifications: Seq[SequenceIdentification]) =
-    configuration.maximumIdentifications > 0 && identifications.distinct.size >= configuration.maximumIdentifications
+    // Check number of elements before checking number of distinct elements (performance)
+    configuration.maximumIdentifications > 0 && identifications.size >= configuration.maximumIdentifications &&
+      identifications.distinct.size >= configuration.maximumIdentifications
 
   private def processIdentifications(identifications: Seq[SequenceIdentification]) = {
     // Sort alphabetically before sorting by length to get deterministic ordering independent of search order
@@ -103,7 +105,7 @@ class Sequencer(configuration: Configuration) {
 
   // Returns the full descriptive string form of the formula,
   // including seed values for recurrence relations
-  private def getFullFormula(formula: Node, sequence: Seq[String]) = {
+  private def getFullFormula(formula: Node, startIndex: Int, sequence: Seq[String]) = {
     val builder = new StringBuilder
 
     var generalPart = Simplifier.simplify(formula.toString)
@@ -112,7 +114,6 @@ class Sequencer(configuration: Configuration) {
       generalPart = Utilities.getLaTeX(generalPart)
     }
 
-    val startIndex = Utilities.getStartIndex(formula)
     for (index <- 1 to startIndex - 1) {
       if (configuration.outputLaTeX) {
         builder.append("a_").append(index).append(" &= ").append(Utilities.getLaTeX(sequence(index - 1))).append(" \\\\")

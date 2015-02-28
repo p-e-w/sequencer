@@ -13,10 +13,9 @@ package com.worldwidemann.sequencer
 import scala.collection.mutable.ListBuffer
 
 object Predictor {
-  def predict(formula: Node, sequence: Seq[String], elements: Int) = {
+  def predict(formula: Node, startIndex: Int, sequence: Seq[String], elements: Int) = {
     val sequenceNew = new ListBuffer[String]
     sequenceNew ++= sequence
-    val startIndex = Utilities.getStartIndex(formula)
 
     (sequence.size + 1 to sequence.size + elements).map(index => {
       var formulaNew = formula.toString.replace("(n)", "(" + index + ")")

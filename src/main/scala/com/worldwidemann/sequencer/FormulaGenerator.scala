@@ -104,21 +104,41 @@ class FormulaGenerator(configuration: Configuration) {
   // Generates all formulas based on the specified expression tree skeleton.
   // The callback pattern is much more efficient than returning a collection
   // because the number of formulas grows extremely fast with the number of nodes
-  def getFormulas(tree: Node, formulaCallback: Node => Unit) {
+  def getFormulas(tree: Node, formulaCallback: (Node, Int) => Unit) {
     val nodes = tree.getTreeNodes
     // Set initial expressions
     nodes.foreach(rollNodeExpression)
+    var startIndex = 1
+    var recomputeStartIndex = true
 
     var lastRolled = false
     while (!lastRolled) {
+      if (recomputeStartIndex)
+        startIndex = nodes.map(_.expression.getStartIndex).max
+
       // Pass the formula in its current form.
       // The object is mutable, so any processing has to happen in the callback
-      formulaCallback(tree)
+      formulaCallback(tree, startIndex)
+
+      recomputeStartIndex = false
 
       var i = 0
       var rolled = true
       while (i < nodes.size && rolled) {
+        val oldStartIndex = nodes(i).expression.getStartIndex
         rolled = rollNodeExpression(nodes(i))
+        val newStartIndex = nodes(i).expression.getStartIndex
+
+        // The start index is computed here because doing so while already iterating
+        // is faster than having to iterate again over the entire collection later
+        if (newStartIndex > startIndex)
+          // The formula's start index is the maximum of the constituent expressions' start indices
+          startIndex = newStartIndex
+        else if (oldStartIndex == startIndex && newStartIndex < startIndex)
+          // An expression that might have had the single maximum start index before
+          // now fell below the maximum, so we cannot say anything for certain anymore
+          recomputeStartIndex = true
+
         i += 1
         if (i == nodes.size && rolled)
           lastRolled = true

@@ -42,14 +42,4 @@ object Utilities {
     else
       (sequence :+ "...").mkString(", ")
   }
-
-  // Retrieves the index from which on the general part of the formula applies
-  // (1 for non-recurrence formulas)
-  def getStartIndex(formula: Node) = {
-    val offsets = formula.getTreeNodes
-      .map(_.expression)
-      .filter(_.isInstanceOf[PreviousElement])
-      .map(_.asInstanceOf[PreviousElement].offset)
-    if (offsets.isEmpty) 1 else offsets.max + 1
-  }
 }

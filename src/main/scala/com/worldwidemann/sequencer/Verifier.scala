@@ -14,8 +14,8 @@ object Verifier {
   private val testThreshold = math.pow(10, -10)
 
   // Verifies formula numerically
-  def testFormula(formula: Node, sequence: Seq[Double]): Boolean = {
-    for (index <- Utilities.getStartIndex(formula) to sequence.size) {
+  def testFormula(formula: Node, startIndex: Int, sequence: Seq[Double]): Boolean = {
+    for (index <- startIndex to sequence.size) {
       try {
         if (math.abs(formula.evaluate(index, sequence) - sequence(index - 1)) > testThreshold)
           return false
@@ -29,9 +29,7 @@ object Verifier {
   }
 
   // Verifies formula symbolically
-  def verifyFormula(formula: Node, sequence: Seq[String]): Boolean = {
-    val startIndex = Utilities.getStartIndex(formula)
-
+  def verifyFormula(formula: Node, startIndex: Int, sequence: Seq[String]): Boolean = {
     for (index <- startIndex to sequence.size) {
       var equation = formula.toString.replace("(n)", "(" + index + ")")
       // Substitute values of previous elements
