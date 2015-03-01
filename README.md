@@ -83,6 +83,7 @@ case class Configuration(
 	predictionLength: Int,
 	recurrenceRelations: Boolean,
 	combinatorialFunctions: Boolean,
+	numberTheoreticFunctions: Boolean,
 	transcendentalFunctions: Boolean,
 	parallelSearch: Boolean,
 	numericalTest: Boolean,

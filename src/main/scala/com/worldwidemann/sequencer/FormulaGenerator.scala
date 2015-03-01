@@ -10,8 +10,6 @@
 
 package com.worldwidemann.sequencer
 
-import org.apache.commons.math3.util.CombinatoricsUtils
-
 class FormulaGenerator(configuration: Configuration) {
   // Note: Rarely used expressions are disabled to increase search speed
   private val expressions = List(
@@ -57,11 +55,32 @@ class FormulaGenerator(configuration: Configuration) {
       //UnaryPrefixOperator("Round", x => math.round(x))
       ) ++
       (if (configuration.combinatorialFunctions) List(
-        UnaryPrefixOperator("Factorial", x => {
-          if (x.isWhole && 0 <= x && x <= 10)
-            CombinatoricsUtils.factorialDouble(x.toInt)
-          else Double.NaN
-        }))
+        UnaryPrefixOperator("Factorial", x =>
+          if (x.isWhole && 0 <= x && x <= 20)
+            Tables.factorials(x.toInt)
+          else Double.NaN),
+        UnaryPrefixOperator("Factorial2", x =>
+          if (x.isWhole && 0 <= x && x <= 20)
+            Tables.doubleFactorials(x.toInt)
+          else Double.NaN),
+        UnaryPrefixOperator("CatalanNumber", x =>
+          if (x.isWhole && 0 <= x && x <= 20)
+            Tables.catalanNumbers(x.toInt)
+          else Double.NaN))
+      else List()) ++
+      (if (configuration.numberTheoreticFunctions) List(
+        UnaryPrefixOperator("Prime", x =>
+          if (x.isWhole && 1 <= x && x <= 1000)
+            Tables.primes(x.toInt)
+          else Double.NaN),
+        UnaryPrefixOperator("EulerPhi", x =>
+          if (x.isWhole && 1 <= x && x <= 1000)
+            Tables.eulerTotients(x.toInt)
+          else Double.NaN),
+        UnaryPrefixOperator("BernoulliB", x =>
+          if (x.isWhole && 0 <= x && x <= 20)
+            Tables.bernoulliNumbers(x.toInt)
+          else Double.NaN))
       else List()) ++
       (if (configuration.transcendentalFunctions) List(
         //UnaryPrefixOperator("Exp", x => math.exp(x)),
@@ -83,11 +102,10 @@ class FormulaGenerator(configuration: Configuration) {
       //BinaryPrefixOperator("Min", (x, y) => math.min(x, y))
       ) ++
       (if (configuration.combinatorialFunctions) List(
-        BinaryPrefixOperator("Binomial", (x, y) => {
-          if (x.isWhole && 0 <= x && x <= 10 && y.isWhole && 0 <= y && y <= x)
-            CombinatoricsUtils.binomialCoefficientDouble(x.toInt, y.toInt)
-          else Double.NaN
-        }))
+        BinaryPrefixOperator("Binomial", (x, y) =>
+          if (x.isWhole && 0 <= x && x <= 20 && y.isWhole && 0 <= y && y <= x)
+            Tables.binomialCoefficients(x.toInt)(y.toInt)
+          else Double.NaN))
       else List()))
 
   // Ensures that TreeGenerator builds all trees required to accommodate the expressions above

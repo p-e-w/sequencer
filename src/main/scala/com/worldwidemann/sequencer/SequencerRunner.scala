@@ -51,6 +51,9 @@ object SequencerRunner {
       opt[Unit]('c', "no-combinatorics") action { (x, c) =>
         c.copy(combinatorialFunctions = false)
       } text ("do not search for combinatorial functions (speeds up search)")
+      opt[Unit]('n', "no-number-theory") action { (x, c) =>
+        c.copy(numberTheoreticFunctions = false)
+      } text ("do not search for number theoretic functions (speeds up search)")
       opt[Unit]('t', "no-transcendentals") action { (x, c) =>
         c.copy(transcendentalFunctions = false)
       } text ("do not search for transcendental functions (speeds up search)")
@@ -71,7 +74,7 @@ object SequencerRunner {
       } text ("list of numbers to search for (symbolic expressions allowed)")
     }
 
-    parser.parse(args, Configuration(6, 5, 5, true, true, true, true, true, true, false)) match {
+    parser.parse(args, Configuration(6, 5, 5, true, true, true, true, true, true, true, false)) match {
       case Some(configuration) => {
         println("Searching for formulas for sequence " +
           (if (configuration.outputLaTeX)

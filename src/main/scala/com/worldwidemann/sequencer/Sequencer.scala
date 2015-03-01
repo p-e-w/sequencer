@@ -15,7 +15,7 @@ import scala.collection.mutable.SynchronizedQueue
 import scala.collection.generic.Growable
 
 case class Configuration(maximumComplexity: Int, maximumIdentifications: Int, predictionLength: Int,
-                         recurrenceRelations: Boolean, combinatorialFunctions: Boolean, transcendentalFunctions: Boolean,
+                         recurrenceRelations: Boolean, combinatorialFunctions: Boolean, numberTheoreticFunctions: Boolean, transcendentalFunctions: Boolean,
                          parallelSearch: Boolean, numericalTest: Boolean, printProgress: Boolean, outputLaTeX: Boolean)
 
 case class SequenceIdentification(formula: String, continuation: Seq[String])
