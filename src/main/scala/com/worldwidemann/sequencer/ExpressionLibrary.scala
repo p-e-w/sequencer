@@ -51,10 +51,7 @@ class ExpressionLibrary(configuration: Configuration) {
   private val MIN = BinaryPrefixOperator("Min", (x, y) => math.min(x, y))
   private val standardFunctions = Array[Expression](NEGATE, SQRT, ABS, SIGN, FLOOR, CEILING, ROUND, ADD, SUBTRACT, MULTIPLY, DIVIDE, POWER, MAX, MIN)
 
-  private val A_N_MINUS_ONE = PreviousElement(1)
-  private val A_N_MINUS_TWO = PreviousElement(2)
-  private val A_N_MINUS_THREE = PreviousElement(3)
-  private val previousElements = Array[Expression](A_N_MINUS_ONE, A_N_MINUS_TWO, A_N_MINUS_THREE)
+  private val previousElements = (1 to configuration.recurrenceDepth).map(PreviousElement(_)).toArray[Expression]
 
   private val FACTORIAL = UnaryPrefixOperator("Factorial", x =>
     if (x.isWhole && 0 <= x && x <= 20)
@@ -98,8 +95,7 @@ class ExpressionLibrary(configuration: Configuration) {
   private val transcendentalFunctions = Array[Expression](PI, E, EXP, LOG, SIN, COS, TAN)
 
   private val expressions =
-    (integers ++ indexFunctions ++ standardFunctions ++
-      (if (configuration.recurrenceRelations) previousElements else Array[Expression]()) ++
+    (integers ++ indexFunctions ++ standardFunctions ++ previousElements ++
       (if (configuration.combinatorialFunctions) combinatorialFunctions else Array[Expression]()) ++
       (if (configuration.numberTheoreticFunctions) numberTheoreticFunctions else Array[Expression]()) ++
       (if (configuration.transcendentalFunctions) transcendentalFunctions else Array[Expression]()))

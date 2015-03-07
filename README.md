@@ -81,7 +81,7 @@ case class Configuration(
 	maximumComplexity: Int,
 	maximumIdentifications: Int,
 	predictionLength: Int,
-	recurrenceRelations: Boolean,
+	recurrenceDepth: Int,
 	combinatorialFunctions: Boolean,
 	numberTheoreticFunctions: Boolean,
 	transcendentalFunctions: Boolean,

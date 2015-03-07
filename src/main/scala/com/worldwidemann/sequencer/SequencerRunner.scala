@@ -45,9 +45,9 @@ object SequencerRunner {
       opt[Int]('p', "predict") action { (x, c) =>
         c.copy(predictionLength = x)
       } text ("number of elements to predict in sequence continuation [default: 5]")
-      opt[Unit]('u', "no-recurrences") action { (x, c) =>
-        c.copy(recurrenceRelations = false)
-      } text ("do not search for recurrence relations (speeds up search)")
+      opt[Int]('u', "recurrence-depth") action { (x, c) =>
+        c.copy(recurrenceDepth = x)
+      } text ("maximum number of previous elements to consider for recurrence relations [default: 3]")
       opt[Unit]('c', "no-combinatorics") action { (x, c) =>
         c.copy(combinatorialFunctions = false)
       } text ("do not search for combinatorial functions (speeds up search)")
@@ -74,7 +74,7 @@ object SequencerRunner {
       } text ("list of numbers to search for (symbolic expressions allowed)")
     }
 
-    parser.parse(args, Configuration(6, 5, 5, true, true, true, true, true, true, true, false)) match {
+    parser.parse(args, Configuration(6, 5, 5, 3, true, true, true, true, true, true, false)) match {
       case Some(configuration) => {
         println("Searching for formulas for sequence " +
           (if (configuration.outputLaTeX)
