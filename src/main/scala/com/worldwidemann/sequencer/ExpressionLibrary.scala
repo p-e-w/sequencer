@@ -46,10 +46,12 @@ class ExpressionLibrary(configuration: Configuration) {
   private val SUBTRACT = BinaryInfixOperator("-", (x, y) => x - y)
   private val MULTIPLY = BinaryInfixOperator("*", (x, y) => x * y)
   private val DIVIDE = BinaryInfixOperator("/", (x, y) => x / y)
+  private val MODULO = BinaryPrefixOperator("Mod", (x, y) => x % y)
   private val POWER = BinaryInfixOperator("^", (x, y) => math.pow(x, y))
   private val MAX = BinaryPrefixOperator("Max", (x, y) => math.max(x, y))
   private val MIN = BinaryPrefixOperator("Min", (x, y) => math.min(x, y))
-  private val standardFunctions = Array[Expression](NEGATE, SQRT, ABS, SIGN, FLOOR, CEILING, ROUND, ADD, SUBTRACT, MULTIPLY, DIVIDE, POWER, MAX, MIN)
+  private val standardFunctions = Array[Expression](NEGATE, SQRT, ABS, SIGN, FLOOR, CEILING, ROUND,
+    ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO, POWER, MAX, MIN)
 
   private val previousElements = (1 to configuration.recurrenceDepth).map(PreviousElement(_)).toArray[Expression]
 
@@ -130,6 +132,8 @@ class ExpressionLibrary(configuration: Configuration) {
     ROUND -> integerExpressions,
     // 1*x = x*1 = x
     MULTIPLY -> Array[Expression](ONE),
+    // 1%x = 1, x%1 = 0
+    MODULO -> (Array[Expression](ONE) ++ nonIntegerExpressions),
     // 1^x = 1, x^1 = x
     POWER -> Array[Expression](ONE),
     FACTORIAL -> (integers ++ nonIntegerExpressions),
