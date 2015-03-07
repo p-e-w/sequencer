@@ -13,12 +13,15 @@ package com.worldwidemann.sequencer
 trait Expression {
   def evaluate(arguments: Seq[Double], index: Int, sequence: Seq[Double]): Double
   def render(arguments: Seq[String]): String
+  def getArgumentCount = 0
   // Returns the index from which on the general part of the formula applies
   def getStartIndex = 1
+  // Number used to identify the expression for fast table lookups (see ExpressionLibrary)
+  var id = 0
 }
 
 case object EmptyExpression extends Expression {
-  def evaluate(arguments: Seq[Double], index: Int, sequence: Seq[Double]) = 0
+  def evaluate(arguments: Seq[Double], index: Int, sequence: Seq[Double]) = Double.NaN
   def render(arguments: Seq[String]) = if (arguments.isEmpty) "O" else "O(" + arguments.mkString(",") + ")"
 }
 
@@ -44,14 +47,17 @@ case class Number(symbol: String, value: Double) extends Expression {
 case class UnaryPrefixOperator(symbol: String, f: Double => Double) extends Expression {
   def evaluate(arguments: Seq[Double], index: Int, sequence: Seq[Double]) = f(arguments(0))
   def render(arguments: Seq[String]) = symbol + "(" + arguments(0) + ")"
+  override def getArgumentCount = 1
 }
 
 case class BinaryInfixOperator(symbol: String, f: (Double, Double) => Double) extends Expression {
   def evaluate(arguments: Seq[Double], index: Int, sequence: Seq[Double]) = f(arguments(0), arguments(1))
   def render(arguments: Seq[String]) = "(" + arguments(0) + ")" + symbol + "(" + arguments(1) + ")"
+  override def getArgumentCount = 2
 }
 
 case class BinaryPrefixOperator(symbol: String, f: (Double, Double) => Double) extends Expression {
   def evaluate(arguments: Seq[Double], index: Int, sequence: Seq[Double]) = f(arguments(0), arguments(1))
   def render(arguments: Seq[String]) = symbol + "(" + arguments(0) + "," + arguments(1) + ")"
+  override def getArgumentCount = 2
 }

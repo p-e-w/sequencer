@@ -10,32 +10,31 @@
 
 package com.worldwidemann.sequencer
 
+import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
 
-class Node {
+class Node(val parent: Node) {
   var expression: Expression = EmptyExpression
   // Ensures that the initial roll selects the first valid expression (see FormulaGenerator)
   var expressionIndex = -1
 
   val children = new ListBuffer[Node]
 
-  def getCopy: Node = {
-    val copy = new Node
+  def getCopy(parent: Node): Node = {
+    val copy = new Node(parent)
     copy.expression = expression
     copy.expressionIndex = expressionIndex
-    copy.children ++= children.map(_.getCopy)
+    copy.children ++= children.map(_.getCopy(copy))
     copy
   }
 
   // Returns all nodes in the tree
   def getTreeNodes: Seq[Node] = {
-    // More elegant but also slower:
-    //this +: children.map(_.getTreeNodes).flatten
-    val treeNodes = new ListBuffer[Node]
+    // ArrayBuffer rather than ListBuffer because fast random access is needed
+    val treeNodes = new ArrayBuffer[Node]
+    children.foreach(child => treeNodes ++= child.getTreeNodes)
+    // Post-order traversal (see FormulaGenerator for why this is important)
     treeNodes += this
-    children.foreach(child => {
-      treeNodes ++= child.getTreeNodes
-    })
     treeNodes
   }
 

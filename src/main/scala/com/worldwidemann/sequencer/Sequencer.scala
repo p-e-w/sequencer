@@ -21,10 +21,11 @@ case class Configuration(maximumComplexity: Int, maximumIdentifications: Int, pr
 case class SequenceIdentification(formula: String, continuation: Seq[String])
 
 class Sequencer(configuration: Configuration) {
-  // Note that neither of the two classes keeps a state,
+  // Note that none of the three classes keeps a state,
   // so sharing these objects is thread safe
-  private val formulaGenerator = new FormulaGenerator(configuration)
-  private val treeGenerator = new TreeGenerator(formulaGenerator.getMaxChildren)
+  private val expressionLibrary = new ExpressionLibrary(configuration)
+  private val treeGenerator = new TreeGenerator(expressionLibrary.maxArgumentCount)
+  private val formulaGenerator = new FormulaGenerator(expressionLibrary)
 
   def identifySequence(sequence: Seq[String]): Seq[SequenceIdentification] = {
     val sequenceSimplified = sequence.map(Simplifier.simplify)

@@ -17,7 +17,7 @@ class TreeGenerator(maxChildren: Int) {
     if (nodes <= 0)
       return Seq()
     if (nodes == 1)
-      return Seq(new Node)
+      return Seq(new Node(null))
 
     getTrees(nodes - 1)
       .map(tree => expandTree(tree, tree))
@@ -32,8 +32,8 @@ class TreeGenerator(maxChildren: Int) {
 
     if (node.children.size < maxChildren) {
       // Generate new tree by adding child node
-      node.children += new Node
-      trees += root.getCopy
+      node.children += new Node(node)
+      trees += root.getCopy(null)
       // Restore previous state
       node.children.remove(node.children.size - 1)
     }

@@ -19,7 +19,7 @@ import scopt.OptionParser
 
 object SequencerRunner {
   def main(args: Array[String]) {
-    println("Sequencer 1.3.0 (https://github.com/p-e-w/sequencer)\n")
+    println("Sequencer 1.4.0 (https://github.com/p-e-w/sequencer)\n")
 
     // Suppress annoying Symja console output (idea from http://stackoverflow.com/a/8363580).
     // This is a very brittle solution. In particular, if we do not use the Console stream
