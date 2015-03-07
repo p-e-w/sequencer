@@ -63,6 +63,9 @@ object SequencerRunner {
       opt[Unit]('s', "symbolic") action { (x, c) =>
         c.copy(numericalTest = false)
       } text ("skip numerical test (symbolic verification only; slows down search)")
+      opt[Unit]('o', "hide-progress") action { (x, c) =>
+        c.copy(printProgress = false)
+      } text ("do not output progress while searching")
       opt[Unit]('l', "latex") action { (x, c) =>
         c.copy(outputLaTeX = true)
       } text ("output LaTeX instead of plain text")
