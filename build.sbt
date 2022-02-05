@@ -7,9 +7,9 @@ organization := "com.worldwidemann"
 homepage := Some(url("https://github.com/p-e-w/sequencer"))
 
 libraryDependencies ++= Seq(
-	"com.github.scopt" %% "scopt" % "3.3.0",
+	"com.github.scopt" %% "scopt" % "3.5.0",
 	"log4j" % "log4j" % "1.2.17",
-	"axelclk" % "symja" % "2015-02-08" from "https://bitbucket.org/axelclk/symja_android_library/downloads/symja-2015-02-08.jar"
+	"axelclk" % "symja" % "2015-02-08" from "https://bitbucket.org/axelclk/symja_android_library/downloads/symja-2015-02-20.jar"
 )
 
 resolvers += Resolver.sonatypeRepo("public")
